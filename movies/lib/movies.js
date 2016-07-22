@@ -23,7 +23,7 @@ Movies.prototype.search = function(obj){
 
         let query = {};
 		console.log("BUSQUEDA");
-        if(obj.title) query.Title = new RegExp(obj.title);
+        if(obj.title) query.Title = new RegExp(obj.title, 'i');
         if(obj.year) query.Year = obj.year;
         if(obj.id) query.imdbID = obj.id;
 
@@ -33,26 +33,11 @@ Movies.prototype.search = function(obj){
 		return reject(err);
 		}else{
 		if(0 < docs.length){
+		console.log('retorna de la base');
 		return resolve(docs);
 		}else{
-		
-		var username = 'desa';
-var password = 'casino2015';
-var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
-		
-		
-		var opt = {
-    host: 'proxy.oper.cbasa-ciesa.com.ar',
-    port: 8080,
-    path: 'http://www.omdbapi.com/?t=' + obj.title +'&y=&plot=short&r=json',
-	 headers: {
-        Host: 'http://www.omdbapi.com/?t=' + obj.title +'&y=&plot=short&r=json',
-        "Proxy-Authorization" : auth
-     }
-	
-}
-		
-		http.get( opt, (res) => {
+		console.log('Busca en imdb');
+		http.get( 'http://www.omdbapi.com/?t=' + obj.title +'&y=&plot=short&r=json', (res) => {
 		 
 		// consume response body
 		/*res.on("data", function(chunk) {
@@ -68,10 +53,23 @@ var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
 		res.on('data', function(chunk) {
 		  body.push(chunk);
 		}).on('end', function() {
-		  body = Buffer.concat(body).toString();
-		  console.log(body);
-			self.db.movies.insert(JSON.parse(body));
-			return resolve(JSON.parse(body));
+			body = Buffer.concat(body).toString();
+			let json = JSON.parse(body)
+			  
+			let queryID = {};
+			queryID.imdbID = json.imdbID;
+
+			self.db.movies.find(queryID, {}, (err1, docs1)=>{
+				if(err1){
+				return reject(err1);
+				}else{
+				if(docs1.length == 0){
+					self.db.movies.insert(json);
+					console.log('inserta en base');
+				}
+			}})
+			  
+			return resolve(json);
 		});
 		
 		});

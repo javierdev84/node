@@ -90,9 +90,21 @@ myapp.controller("bodyCtrl", function ($scope, $http, $location) {
 
     $scope.search  =function(){
         if($scope.searchInput.trim()!="")
-            location.hash="#/search/"+$scope.searchInput;
+        {
+		   location.hash="#/search/"+$scope.searchInput;
+		   socket.emit('search', $scope.searchInput);
+		}
         else return;
     };
+	
+	
+	 socket.on('search', function(msg){
+        console.log("se busco: ", msg);
+        var p = document.createElement("li");
+        p.innerHTML = msg;
+        document.getElementById("chatMessages").appendChild(p);
+    });
+	
 });
 
 myapp.controller("chat", function($scope){
